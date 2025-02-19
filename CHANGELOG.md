@@ -2,6 +2,10 @@
 
 All notable changes to the package will be documented in this file.
 
+## [v4.2.3](https://github.com/upmind-automation/provision-provider-servers/releases/tag/v4.2.3) - 2025-02-19
+
+- Implement Virtualizor SSO
+
 ## [v4.2.2](https://github.com/upmind-automation/provision-provider-servers/releases/tag/v4.2.2) - 2024-12-23
 
 - Fix Virtfusion/ApiClient::getServerInfo() for unbuilt servers with empty name/hostname
@@ -25,6 +29,10 @@ All notable changes to the package will be documented in this file.
 
 - Update for PHP 8 and base lib v4
 - Update Linode SDK to v3.5.0
+
+## [v4.0.6](https://github.com/upmind-automation/provision-provider-servers/releases/tag/v4.0.6) - 2025-02-19
+
+- Implement Virtualizor SSO
 
 ## [v4.0.5](https://github.com/upmind-automation/provision-provider-servers/releases/tag/v4.0.5) - 2024-12-23
 
