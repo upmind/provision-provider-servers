@@ -148,17 +148,12 @@ class Provider extends Category implements ProviderInterface
      */
     public function getConnection(ServerIdentifierParams $params): ConnectionResult
     {
-        // $vnc = $this->api()->getVncInfo($params->instance_id);
-        $info = $this->getServerInfoResult($params->instance_id);
-
-        if (empty($info->ip_address)) {
-            $this->errorResult('No IP address assigned to server');
-        }
+        $url = $this->api()->getSsoUrl($params->instance_id);
 
         return ConnectionResult::create()
-            ->setMessage('SSH command generated')
-            ->setType(ConnectionResult::TYPE_SSH)
-            ->setCommand(sprintf('ssh root@%s', $info->ip_address));
+            ->setMessage('Control panel URL generated')
+            ->setType(ConnectionResult::TYPE_REDIRECT)
+            ->setRedirectUrl($url);
     }
 
     /**
