@@ -2,6 +2,10 @@
 
 All notable changes to the package will be documented in this file.
 
+## [v4.0.6](https://github.com/upmind-automation/provision-provider-servers/releases/tag/v4.0.6) - 2025-02-19
+
+- Implement Virtualizor SSO
+
 ## [v4.0.5](https://github.com/upmind-automation/provision-provider-servers/releases/tag/v4.0.5) - 2024-12-23
 
 - Fix Virtfusion/ApiClient::getServerInfo() for unbuilt servers with empty name/hostname
