@@ -496,6 +496,27 @@ class ApiClient
     }
 
     /**
+     * @param int|string $vpsId
+     *
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \Upmind\ProvisionBase\Exception\ProvisionFunctionError
+     * @throws \Throwable
+     */
+    public function getSsoUrl($vpsId): string
+    {
+        $data = $this->apiCall('sso', ['svs' => $vpsId]);
+
+        if (empty($data['sid'] || empty($data['token_key']))) {
+            $this->throwError('Unable to obtain SSO url', [
+                'vpsid' => $vpsId,
+                'response_data' => $this->condenseResponseData($data),
+            ]);
+        }
+
+        return sprintf('https://%s:4083/%s/?as=%s&svs=%s', $this->configuration->hostname, $data['token_key'], $data['sid'], $vpsId);
+    }
+
+    /**
      * @param string $act API Action
      * @param mixed[] $query Query params
      * @param mixed[] $post POST body params
