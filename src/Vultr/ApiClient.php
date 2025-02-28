@@ -10,6 +10,7 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\RequestOptions;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Throwable;
 use Upmind\ProvisionBase\Exception\ProvisionFunctionError;
@@ -21,6 +22,10 @@ use Upmind\ProvisionProviders\Servers\Vultr\Data\Configuration;
 
 class ApiClient
 {
+    private const REGION_CACHE_DURATION = 60 * 60 * 24; // 24 hours
+    private const ISO_CACHE_DURATION = 60 * 60 * 24; // 24 hours
+    private const PLAN_CACHE_DURATION = 60 * 60 * 24; // 24 hours
+
     protected Client $client;
 
     public function __construct(Client $client)
@@ -362,7 +367,7 @@ class ApiClient
     public function getAllRegions(): array
     {
         $endpoint = 'regions';
-        $result = $this->apiCall($endpoint);
+        $result = Cache::remember('vultr_regions', self::REGION_CACHE_DURATION, $this->apiCall($endpoint));
 
         if (empty($result->regions)) {
             $this->throwError("No regions were returned by the provider", ['result_data' => $result]);
@@ -443,7 +448,7 @@ class ApiClient
         $query = [
             'type' => 'vc2'
         ];
-        $result = $this->apiCall($endpoint, $query);
+        $result = Cache::remember('vultr_plans', self::PLAN_CACHE_DURATION, $this->apiCall($endpoint, $query));
 
         if (empty($result->regions)) {
             $this->throwError("No plans were returned by the provider", ['result_data' => $result]);
@@ -479,7 +484,7 @@ class ApiClient
     public function getPublicIsos(): array
     {
         $endpoint = 'iso-public';
-        $result = $this->apiCall($endpoint);
+        $result = Cache::remember('vultr_public_isos', self::ISO_CACHE_DURATION, $this->apiCall($endpoint));
 
         if (empty($result->public_isos)) {
             $this->throwError("No public ISOs were returned by the provider", ['result_data' => $result]);

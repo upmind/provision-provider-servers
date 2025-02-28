@@ -49,7 +49,17 @@ class Provider extends Category implements ProviderInterface
      */
     public function create(CreateParams $params): ServerInfoResult
     {
-        $this->errorResult('Not implemented');
+        try {
+            $instance_id = $this->api()->createInstance($params);
+
+            //TODO: have to start the instance?
+
+            return $this->getServerInfoResult($instance_id)
+                ->setMessage('Server is being created');
+            
+        } catch (Throwable $e) {
+            $this->handleException($e);
+        }
     }
 
     /**
@@ -57,17 +67,7 @@ class Provider extends Category implements ProviderInterface
      */
     public function getInfo(ServerIdentifierParams $params): ServerInfoResult
     {
-        // $serverData = $this->client()->get(sprintf('servers/' . $params->instance_id));
-
-        return ServerInfoResult::create()
-            ->setInstanceId($params->instance_id)
-            ->setState('running')
-            ->setLabel('Example Server')
-            ->setHostname('server.example.com')
-            ->setIpAddress('123.123.123.123')
-            ->setImage('Ubuntu 20.04')
-            ->setSize('large')
-            ->setLocation('London');
+        return $this->getServerInfoResult($params->instance_id);
     }
 
     /**
@@ -97,7 +97,27 @@ class Provider extends Category implements ProviderInterface
      */
     public function resize(ResizeParams $params): ServerInfoResult
     {
-        $this->errorResult('Not implemented');
+        try {
+            $available_plans = $this->api()->getAvailableInstanceUpgradePlans($params->instance_id);
+
+            if (in_array($params->size, $available_plans)) {
+                $info = $this->getServerInfoResult($params->instance_id);
+
+                //TODO: have to stop the instance before upgrade?
+
+                // requested size is an available upgrade plan for the instance
+                $instance_id = $this->api()->upgradeInstancePlan($params->instance_id, $params->size);
+
+                //TODO: have to restart the instance?
+            } else {
+                $istance_id = $params->instance_id;
+            }
+
+            return $this->getServerInfoResult($instance_id)
+                ->setMessage('Server is resizing');
+        } catch (Throwable $e) {
+            $this->handleException($e);
+        }
     }
 
     /**
@@ -107,7 +127,19 @@ class Provider extends Category implements ProviderInterface
      */
     public function reinstall(ReinstallParams $params): ServerInfoResult
     {
-        $this->errorResult('Not implemented');
+        try {
+            //TODO: have to stop instance before reinstall?
+
+            $instance_id = $this->api()->reinstallInstance($params->instance_id, $params->size);
+            
+            //TODO: have to restart the instance?
+
+            return $this->getServerInfoResult($instance_id)
+                ->setMessage('Server rebuilding with fresh image');
+            
+        } catch (Throwable $e) {
+            $this->handleException($e);
+        }
     }
 
     /**
@@ -117,7 +149,15 @@ class Provider extends Category implements ProviderInterface
      */
     public function reboot(ServerIdentifierParams $params): ServerInfoResult
     {
-        $this->errorResult('Not implemented');
+        try {
+            $this->api()->rebootInstance($params->instance_id);
+
+            return $this->getServerInfoResult($params->instance_id)
+                ->setMessage('Server is rebooting');
+                
+        } catch (Throwable $e) {
+            $this->handleException($e);
+        }
     }
 
     /**
@@ -127,7 +167,21 @@ class Provider extends Category implements ProviderInterface
      */
     public function shutdown(ServerIdentifierParams $params): ServerInfoResult
     {
-        $this->errorResult('Not implemented');
+        try {
+            $info = $this->getServerInfoResult($params->instance_id);
+
+            if ($info->power_status === 'down') {// TODO: check what vultr's power status is for a shutdown server
+                return $info->setMessage('Server is already off');
+            }
+
+            $this->api()->haltInstance($params->instance_id);
+
+            return $this->getServerInfoResult($params->instance_id)
+                ->setMessage('Server is shutting down')
+                ->setState('Stopping');
+        } catch (Throwable $e) {
+            $this->handleException($e);
+        }
     }
 
     /**
@@ -137,7 +191,21 @@ class Provider extends Category implements ProviderInterface
      */
     public function powerOn(ServerIdentifierParams $params): ServerInfoResult
     {
-        $this->errorResult('Not implemented');
+        try {
+            $info = $this->getServerInfoResult($params->instance_id);
+
+            if ($info->power_status === 'running') {
+                return $info->setMessage('Server is already running');
+            }
+
+            $this->api()->startInstance($params->instance_id);
+
+            return $this->getServerInfoResult($params->instance_id)
+                ->setMessage('Server is booting')
+                ->setState('Starting');
+        } catch (Throwable $e) {
+            $this->handleException($e);
+        }
     }
 
     /**
@@ -147,7 +215,16 @@ class Provider extends Category implements ProviderInterface
      */
     public function terminate(ServerIdentifierParams $params): EmptyResult
     {
-        $this->errorResult('Not implemented');
+        try {
+            $this->api()->haltInstance($params->instance_id);
+
+            $this->api()->deleteInstance($params->instance_id);
+
+            return EmptyResult::create()->setMessage('Server permanently deleted');
+            
+        } catch (Throwable $e) {
+            $this->handleException($e);
+        }
     }
 
     /**
@@ -155,7 +232,8 @@ class Provider extends Category implements ProviderInterface
      */
     public function suspend(ServerIdentifierParams $params): ServerInfoResult
     {
-        $this->errorResult('Not implemented');
+        return $this->shutdown($params)
+            ->setSuspend(true);
     }
 
     /**
@@ -163,7 +241,8 @@ class Provider extends Category implements ProviderInterface
      */
     public function unsuspend(ServerIdentifierParams $params): ServerInfoResult
     {
-        $this->errorResult('Not implemented');
+        return $this->powerOn()
+            ->setSuspend(true);
     }
 
     /**
@@ -171,7 +250,15 @@ class Provider extends Category implements ProviderInterface
      */
     public function attachRecoveryIso(ServerIdentifierParams $params): ServerInfoResult
     {
-        $this->errorResult('Not implemented');
+        try {
+            $this->api()->attachRecoveryIso($params->instance_id);
+
+            return $this->getServerInfoResult($params->instance_id)
+                ->setMessage('Attaching recovery ISO to server');
+            
+        } catch (Throwable $e) {
+            $this->handleException($e);
+        }
     }
 
     /**
@@ -179,28 +266,60 @@ class Provider extends Category implements ProviderInterface
      */
     public function detachRecoveryIso(ServerIdentifierParams $params): ServerInfoResult
     {
-        $this->errorResult('Not implemented');
+        try {
+            //get the current attached ISO & recovery ISO
+            $recovery_iso = $this->api()->getRecoveryIso();
+            $instance_iso = $this->api()->getInstanceIsoStatus($params->instance_id);
+
+            //verify the current attached ISO is the recovery ISO before detaching
+            if ($recovery_iso->id === $instance_iso->id) {
+                $this->api()->detachIsoFromInstance($params->instance_id);
+                $message = 'Detaching recovery ISO from server';
+            } else {
+                $message = 'Recovery ISO not attached to server';
+            }
+
+            return $this->getServerInfoResult($params->instance_id)
+                ->setMessage($message);
+                
+        } catch (Throwable $e) {
+            $this->handleException($e);
+        }
     }
 
     /**
+     * @param string $serverId  Instance ID
+     * 
+     * @return ServerInfoResult
+     * 
      * @throws \GuzzleHttp\Exception\GuzzleException
      * @throws \Upmind\ProvisionBase\Exception\ProvisionFunctionError
      * @throws \Throwable
      */
-    protected function getServerInfoResult($serverId): ServerInfoResult
+    protected function getServerInfoResult(string $serverId): ServerInfoResult
     {
-        $server = $this->api()->getInstance($serverId);
+        try {
+            $server = $this->api()->getInstance($serverId);
+            $region = $this->api()->getRegion($server->region);
+            $plan = $this->api()->getPlan($server->plan);
 
-        // Format ServerInfoResult using server data
-        return ServerInfoResult::create()
-            ->setInstanceId($server->id)
-            ->setState($server->power_status)
-            ->setLabel($server->label)
-            ->setHostname($server->hostname)
-            ->setIpAddress($server->main_ip)
-            ->setImage($server->os)
-            ->setSize('large') // Need to parse the plan
-            ->setLocation('London'); // Need to fetch the region
+            // Format ServerInfoResult using server data
+            return ServerInfoResult::create()
+                ->setInstanceId($server->id)
+                ->setState($server->power_status)
+                ->setLabel($server->label)
+                ->setHostname($server->hostname)
+                ->setIpAddress($server->main_ip)
+                ->setImage($server->os)
+                ->setSize($server->plan) // Need to parse the plan - assumption is that plan format will remain, but they explicitly say don't parse the plan for any reason (aka - the format may change w/o notice)
+                ->setMemoryMb($plan->ram) // example shows "ram" : 32768,  although documentation says memory size in GB such as 32gb in Bare Metal plans (no reference in List Plans API doc)
+                ->setDiskMb($plan->disk * 1024) //example shows "disk": 512; does not specify GB, but 1/2 GB of disk space is unlikely
+                ->setCpuCores($plan->vcpu_count)
+                ->setLocation($region->city)
+            ;
+        } catch (Throwable $e) {
+            $this->handleException($e);
+        }
     }
 
     /**
@@ -223,5 +342,19 @@ class Provider extends Category implements ProviderInterface
         $this->apiClient = new ApiClient($client);
 
         return $this->apiClient;
+    }
+
+    /**
+     * @return no-return
+     * @throws \Upmind\ProvisionBase\Exception\ProvisionFunctionError
+     * @throws \Throwable
+     */
+    protected function handleException(Throwable $e): void
+    {
+        if (!$e instanceof ProvisionFunctionError) {
+            $e = new ProvisionFunctionError('Unexpected Provider Error', $e->getCode(), $e);
+        }
+
+        throw $e;
     }
 }
