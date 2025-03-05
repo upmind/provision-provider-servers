@@ -11,7 +11,6 @@ use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\RequestOptions;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
-use Illuminate\Log\Logger;
 use Throwable;
 use Upmind\ProvisionBase\Exception\ProvisionFunctionError;
 use Upmind\ProvisionBase\Helper;
@@ -23,11 +22,9 @@ use Upmind\ProvisionProviders\Servers\Vultr\Data\Configuration;
 class ApiClient
 {
     protected Client $client;
-    protected \Illuminate\Log\Logger $logger;
 
-    public function __construct(Client $client, \Illuminate\Log\Logger $logger)
+    public function __construct(Client $client)
     {
-        $this->logger = $logger;
         $this->client = $client;
     }
 
