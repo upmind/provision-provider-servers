@@ -219,7 +219,6 @@ class ApiClient
      */
     public function reinstallInstance(string $instanceId, string|int $os): string
     {
-        // WE MAY NEED TO CHECK IF THE OPERATING SYSTEM IS NOT CHANGING AND USE THE REINSTALL API METHOD IN THAT CASE
         $instanceId = trim($instanceId);
         $osInfo = $this->getOperatingSystem($os);
         $data = [];
@@ -323,7 +322,6 @@ class ApiClient
      */
     public function attachRecoveryIso(string $instanceId): bool
     {
-        //TESTED
         $instanceId = trim($instanceId);
         $endpoint = "instances/{$instanceId}/iso/attach";
 
@@ -360,7 +358,6 @@ class ApiClient
      */
     public function detachIsoFromInstance(string $instanceId): object
     {
-        //TESTED
         $instanceId = trim($instanceId);
         $endpoint = "instances/{$instanceId}/iso/detach";
 
