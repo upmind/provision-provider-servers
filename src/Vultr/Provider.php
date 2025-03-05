@@ -49,10 +49,9 @@ class Provider extends Category implements ProviderInterface
      */
     public function create(CreateParams $params): ServerInfoResult
     {
+        //TESTED
         try {
             $instance_id = $this->api()->createInstance($params);
-
-            //TODO: have to start the instance?
 
             return $this->getServerInfoResult($instance_id)
                 ->setMessage('Server is being created');
@@ -67,6 +66,7 @@ class Provider extends Category implements ProviderInterface
      */
     public function getInfo(ServerIdentifierParams $params): ServerInfoResult
     {
+        //TESTED
         return $this->getServerInfoResult($params->instance_id);
     }
 
@@ -77,7 +77,13 @@ class Provider extends Category implements ProviderInterface
      */
     public function getConnection(ServerIdentifierParams $params): ConnectionResult
     {
-        $this->errorResult('Not implemented');
+        //TESTED
+        $server = $this->api()->getInstance($params->instance_id);
+
+        return ConnectionResult::create()
+            ->setMessage('Control panel URL generated')
+            ->setType(ConnectionResult::TYPE_REDIRECT)
+            ->setRedirectUrl($server->kvm);
     }
 
     /**
@@ -87,6 +93,8 @@ class Provider extends Category implements ProviderInterface
      */
     public function changeRootPassword(ChangeRootPasswordParams $params): ServerInfoResult
     {
+        //Unable to implement; Process to change root password includes booting server into single-user mode
+        //and running a series of commands to change the password. This is not possible with Vultr's API.
         $this->errorResult('Not implemented');
     }
 
@@ -97,24 +105,24 @@ class Provider extends Category implements ProviderInterface
      */
     public function resize(ResizeParams $params): ServerInfoResult
     {
+        //TESTED - resize up, but not down
         try {
             $available_plans = $this->api()->getAvailableInstanceUpgradePlans($params->instance_id);
 
             if (in_array($params->size, $available_plans)) {
                 $info = $this->getServerInfoResult($params->instance_id);
 
-                //TODO: have to stop the instance before upgrade?
-
                 // requested size is an available upgrade plan for the instance
                 $instance_id = $this->api()->upgradeInstancePlan($params->instance_id, $params->size);
-
-                //TODO: have to restart the instance?
+                $message = 'Server is resizing';
             } else {
-                $istance_id = $params->instance_id;
+                // requested size is not an available upgrade plan for the instance
+                $instance_id = $params->instance_id;
+                $message = 'Requested size is not an available upgrade plan for the instance';
             }
 
             return $this->getServerInfoResult($instance_id)
-                ->setMessage('Server is resizing');
+                ->setMessage($message);
         } catch (Throwable $e) {
             $this->handleException($e);
         }
@@ -127,12 +135,15 @@ class Provider extends Category implements ProviderInterface
      */
     public function reinstall(ReinstallParams $params): ServerInfoResult
     {
+        //TESTED
         try {
-            //TODO: have to stop instance before reinstall?
-
-            $instance_id = $this->api()->reinstallInstance($params->instance_id, $params->size);
-            
-            //TODO: have to restart the instance?
+            $logger = $this->getLogger();
+            $logger->info('Reinstalling server', [
+                'params' => $params
+            ]);
+                
+            $os = intval($params->image) == $params->image ? (int)$params->image : (string)$params->image;//if param is passed as an int val but it's a string, convert it to int here for api use.
+            $instance_id = $this->api()->reinstallInstance($params->instance_id, $os);
 
             return $this->getServerInfoResult($instance_id)
                 ->setMessage('Server rebuilding with fresh image');
@@ -149,6 +160,7 @@ class Provider extends Category implements ProviderInterface
      */
     public function reboot(ServerIdentifierParams $params): ServerInfoResult
     {
+        //TESTED
         try {
             $this->api()->rebootInstance($params->instance_id);
 
@@ -167,10 +179,11 @@ class Provider extends Category implements ProviderInterface
      */
     public function shutdown(ServerIdentifierParams $params): ServerInfoResult
     {
+        //TESTED
         try {
             $info = $this->getServerInfoResult($params->instance_id);
 
-            if ($info->power_status === 'down') {// TODO: check what vultr's power status is for a shutdown server
+            if ($info->state === 'stopped') {
                 return $info->setMessage('Server is already off');
             }
 
@@ -191,10 +204,11 @@ class Provider extends Category implements ProviderInterface
      */
     public function powerOn(ServerIdentifierParams $params): ServerInfoResult
     {
+        //TESTED
         try {
             $info = $this->getServerInfoResult($params->instance_id);
 
-            if ($info->power_status === 'running') {
+            if ($info->state === 'running') {
                 return $info->setMessage('Server is already running');
             }
 
@@ -215,9 +229,8 @@ class Provider extends Category implements ProviderInterface
      */
     public function terminate(ServerIdentifierParams $params): EmptyResult
     {
+        //TESTED
         try {
-            $this->api()->haltInstance($params->instance_id);
-
             $this->api()->deleteInstance($params->instance_id);
 
             return EmptyResult::create()->setMessage('Server permanently deleted');
@@ -232,8 +245,8 @@ class Provider extends Category implements ProviderInterface
      */
     public function suspend(ServerIdentifierParams $params): ServerInfoResult
     {
-        return $this->shutdown($params)
-            ->setSuspend(true);
+        //TESTED
+        return $this->shutdown($params);
     }
 
     /**
@@ -241,8 +254,8 @@ class Provider extends Category implements ProviderInterface
      */
     public function unsuspend(ServerIdentifierParams $params): ServerInfoResult
     {
-        return $this->powerOn()
-            ->setSuspend(true);
+        //TESTED
+        return $this->powerOn($params);
     }
 
     /**
@@ -250,6 +263,9 @@ class Provider extends Category implements ProviderInterface
      */
     public function attachRecoveryIso(ServerIdentifierParams $params): ServerInfoResult
     {
+        //TESTED
+
+        // TODO check if recovery ISO is already attached - checked in the api()->attachRecoveryIso() method
         try {
             $this->api()->attachRecoveryIso($params->instance_id);
 
@@ -266,13 +282,16 @@ class Provider extends Category implements ProviderInterface
      */
     public function detachRecoveryIso(ServerIdentifierParams $params): ServerInfoResult
     {
+        //TESTED
+
+        // TODO check if no ISO is currently attached - current instance ISO is queried and compared vs. recovery ISO
         try {
             //get the current attached ISO & recovery ISO
             $recovery_iso = $this->api()->getRecoveryIso();
             $instance_iso = $this->api()->getInstanceIsoStatus($params->instance_id);
 
-            //verify the current attached ISO is the recovery ISO before detaching
-            if ($recovery_iso->id === $instance_iso->id) {
+            //verify the current attached ISO is the recovery ISO before detaching            
+            if ($recovery_iso->id === $instance_iso->iso_id) {
                 $this->api()->detachIsoFromInstance($params->instance_id);
                 $message = 'Detaching recovery ISO from server';
             } else {
@@ -298,6 +317,7 @@ class Provider extends Category implements ProviderInterface
      */
     protected function getServerInfoResult(string $serverId): ServerInfoResult
     {
+        //TESTED
         try {
             $server = $this->api()->getInstance($serverId);
             $region = $this->api()->getRegion($server->region);
@@ -315,7 +335,7 @@ class Provider extends Category implements ProviderInterface
                 ->setMemoryMb($plan->ram) // example shows "ram" : 32768,  although documentation says memory size in GB such as 32gb in Bare Metal plans (no reference in List Plans API doc)
                 ->setDiskMb($plan->disk * 1024) //example shows "disk": 512; does not specify GB, but 1/2 GB of disk space is unlikely
                 ->setCpuCores($plan->vcpu_count)
-                ->setLocation($region->city)
+                ->setLocation("{$region->city}, {$region->country}")
             ;
         } catch (Throwable $e) {
             $this->handleException($e);
@@ -336,10 +356,11 @@ class Provider extends Category implements ProviderInterface
             'base_uri' => 'https://api.vultr.com/v2/',
             'headers' => [
                 'Authorization' => 'Bearer ' . $this->configuration->api_token,
+                'Content-Type' => 'application/json',
             ],
         ]);
 
-        $this->apiClient = new ApiClient($client);
+        $this->apiClient = new ApiClient($client, $this->getLogger());
 
         return $this->apiClient;
     }

@@ -12,6 +12,7 @@ use GuzzleHttp\RequestOptions;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
+use Illuminate\Log\Logger;
 use Throwable;
 use Upmind\ProvisionBase\Exception\ProvisionFunctionError;
 use Upmind\ProvisionBase\Helper;
@@ -27,9 +28,11 @@ class ApiClient
     private const PLAN_CACHE_DURATION = 60 * 60 * 24; // 24 hours
 
     protected Client $client;
+    protected \Illuminate\Log\Logger $logger;
 
-    public function __construct(Client $client)
+    public function __construct(Client $client, \Illuminate\Log\Logger $logger)
     {
+        $this->logger = $logger;
         $this->client = $client;
     }
 
@@ -53,7 +56,7 @@ class ApiClient
             }
 
             if (!empty($data)) {
-                $requestParams[RequestOptions::FORM_PARAMS] = $data;
+                $requestParams[RequestOptions::JSON] = $data;
             }
 
             $response = $this->client->request($method, $endpoint, $requestParams);
@@ -92,7 +95,7 @@ class ApiClient
      */
     public function getInstance(string $instanceId): object
     {
-        $instanceId = Str::trim($instanceId);
+        $instanceId = trim($instanceId);
         $endpoint = "instances/{$instanceId}";
         $result = $this->apiCall($endpoint);
 
@@ -136,7 +139,7 @@ class ApiClient
      */
     public function deleteInstance(string $instanceId): bool
     {
-        $instanceId = Str::trim($instanceId);
+        $instanceId = trim($instanceId);
         $endpoint = "instances/{$instanceId}";
 
         $result = $this->apiCall($endpoint, [], [], 'DELETE');
@@ -157,7 +160,7 @@ class ApiClient
      */
     public function startInstance(string $instanceId): bool
     {
-        $instanceId = Str::trim($instanceId);
+        $instanceId = trim($instanceId);
         $endpoint = "instances/{$instanceId}/start";
 
         $result = $this->apiCall($endpoint, [], [], 'POST');
@@ -178,7 +181,7 @@ class ApiClient
      */
     public function haltInstance(string $instanceId): bool
     {
-        $instanceId = Str::trim($instanceId);
+        $instanceId = trim($instanceId);
         $endpoint = "instances/{$instanceId}/halt";
 
         $result = $this->apiCall($endpoint, [], [], 'POST');
@@ -199,7 +202,7 @@ class ApiClient
      */
     public function rebootInstance(string $instanceId): bool
     {
-        $instanceId = Str::trim($instanceId);
+        $instanceId = trim($instanceId);
         $endpoint = "instances/{$instanceId}/reboot";
 
         $result = $this->apiCall($endpoint, [], [], 'POST');
@@ -222,15 +225,19 @@ class ApiClient
     public function reinstallInstance(string $instanceId, string|int $os): string
     {
         // WE MAY NEED TO CHECK IF THE OPERATING SYSTEM IS NOT CHANGING AND USE THE REINSTALL API METHOD IN THAT CASE
-        $instanceId = Str::trim($instanceId);
-        $endpoint = "instances/{$instanceId}";
-
+        $instanceId = trim($instanceId);
         $osInfo = $this->getOperatingSystem($os);
-        $data = [
-            'os_id' => $osInfo->id
-        ];
+        $data = [];
 
-        $result = $this->apiCall($endpoint, [], $data, 'PATCH');
+        if ($osInfo->name === $os || $osInfo->id === $os) {
+            $endpoint = "instances/{$instanceId}/reinstall";
+            $method = 'POST';
+        } else {
+            $endpoint = "instances/{$instanceId}";
+            $data['os_id'] = $osInfo->id;
+            $method = 'PATCH';
+        }
+        $result = $this->apiCall($endpoint, [], $data, $method);
 
         if (empty($result->instance)) {
             $this->throwError("Unable to reinstall instance", ['result_data' => $result]);
@@ -248,7 +255,7 @@ class ApiClient
      */
     public function getAvailableInstanceUpgradePlans(string $instanceId): array
     {
-        $instanceId = Str::trim($instanceId);
+        $instanceId = trim($instanceId);
         $endpoint = "instances/{$instanceId}/upgrades";
 
         $query = [
@@ -274,8 +281,8 @@ class ApiClient
      */
     public function upgradeInstancePlan(string $instanceId, string $planId): string
     {
-        $instanceId = Str::trim($instanceId);
-        $planId = Str::trim($planId);
+        $instanceId = trim($instanceId);
+        $planId = trim($planId);
         $endpoint = "instances/{$instanceId}";
 
         $data = [
@@ -300,7 +307,7 @@ class ApiClient
      */
     public function getInstanceIsoStatus(string $instanceId): object
     {
-        $instanceId = Str::trim($instanceId);
+        $instanceId = trim($instanceId);
         $endpoint = "instances/{$instanceId}/iso";
 
         $result = $this->apiCall($endpoint);
@@ -321,7 +328,8 @@ class ApiClient
      */
     public function attachRecoveryIso(string $instanceId): bool
     {
-        $instanceId = Str::trim($instanceId);
+        //TESTED
+        $instanceId = trim($instanceId);
         $endpoint = "instances/{$instanceId}/iso/attach";
 
         $iso = $this->getRecoveryIso();
@@ -331,8 +339,18 @@ class ApiClient
 
         $result = $this->apiCall($endpoint, [], $data, 'POST');
 
-        if (empty($result->iso_status->iso_id) || $result->iso_status->iso_id !== $iso->id) {
+        if (!empty($result->iso_status->state) && $result->iso_status->state === 'ready') {
+            return true;
+        }
+
+        if (empty($result->iso_status->iso_id) || empty($result->iso_status->state) || $result->iso_status->state !== 'isomounting') {
             $this->throwError("Unable to attach recovery ISO", ['result_data' => $result]);
+        }
+
+        // Check if the correct ISO was attached successfully
+        $isoStatus = $this->getInstanceIsoStatus($instanceId);
+        if ($isoStatus->iso_id != $iso->id) {
+            $this->throwError("Unable to attach recovery ISO (iso mismatch)", ['result_data' => $result, 'iso'=> $iso]);
         }
 
         return true;
@@ -347,7 +365,8 @@ class ApiClient
      */
     public function detachIsoFromInstance(string $instanceId): object
     {
-        $instanceId = Str::trim($instanceId);
+        //TESTED
+        $instanceId = trim($instanceId);
         $endpoint = "instances/{$instanceId}/iso/detach";
 
         $result = $this->apiCall($endpoint, [], [], 'POST');
@@ -367,7 +386,10 @@ class ApiClient
     public function getAllRegions(): array
     {
         $endpoint = 'regions';
-        $result = Cache::remember('vultr_regions', self::REGION_CACHE_DURATION, $this->apiCall($endpoint));
+
+        $result = Cache::remember('vultr_regions', self::REGION_CACHE_DURATION, function () use ($endpoint) {
+            return $this->apiCall($endpoint);
+        });
 
         if (empty($result->regions)) {
             $this->throwError("No regions were returned by the provider", ['result_data' => $result]);
@@ -448,9 +470,12 @@ class ApiClient
         $query = [
             'type' => 'vc2'
         ];
-        $result = Cache::remember('vultr_plans', self::PLAN_CACHE_DURATION, $this->apiCall($endpoint, $query));
+        
+        $result = Cache::remember('vultr_plans', self::PLAN_CACHE_DURATION, function () use ($endpoint, $query) {
+            return $this->apiCall($endpoint, $query);
+        });
 
-        if (empty($result->regions)) {
+        if (empty($result->plans)) {
             $this->throwError("No plans were returned by the provider", ['result_data' => $result]);
         }
 
@@ -484,7 +509,10 @@ class ApiClient
     public function getPublicIsos(): array
     {
         $endpoint = 'iso-public';
-        $result = Cache::remember('vultr_public_isos', self::ISO_CACHE_DURATION, $this->apiCall($endpoint));
+
+        $result = Cache::remember('vultr_public_isos', self::ISO_CACHE_DURATION, function () use ($endpoint) {
+            return $this->apiCall($endpoint);
+        });
 
         if (empty($result->public_isos)) {
             $this->throwError("No public ISOs were returned by the provider", ['result_data' => $result]);
