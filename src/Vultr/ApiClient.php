@@ -10,7 +10,6 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\RequestOptions;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Illuminate\Log\Logger;
 use Throwable;
@@ -23,10 +22,6 @@ use Upmind\ProvisionProviders\Servers\Vultr\Data\Configuration;
 
 class ApiClient
 {
-    private const REGION_CACHE_DURATION = 60 * 60 * 24; // 24 hours
-    private const ISO_CACHE_DURATION = 60 * 60 * 24; // 24 hours
-    private const PLAN_CACHE_DURATION = 60 * 60 * 24; // 24 hours
-
     protected Client $client;
     protected \Illuminate\Log\Logger $logger;
 
@@ -387,9 +382,7 @@ class ApiClient
     {
         $endpoint = 'regions';
 
-        $result = Cache::remember('vultr_regions', self::REGION_CACHE_DURATION, function () use ($endpoint) {
-            return $this->apiCall($endpoint);
-        });
+        $result = $this->apiCall($endpoint);
 
         if (empty($result->regions)) {
             $this->throwError("No regions were returned by the provider", ['result_data' => $result]);
@@ -470,10 +463,7 @@ class ApiClient
         $query = [
             'type' => 'vc2'
         ];
-        
-        $result = Cache::remember('vultr_plans', self::PLAN_CACHE_DURATION, function () use ($endpoint, $query) {
-            return $this->apiCall($endpoint, $query);
-        });
+        $result = $this->apiCall($endpoint, $query);
 
         if (empty($result->plans)) {
             $this->throwError("No plans were returned by the provider", ['result_data' => $result]);
@@ -509,10 +499,7 @@ class ApiClient
     public function getPublicIsos(): array
     {
         $endpoint = 'iso-public';
-
-        $result = Cache::remember('vultr_public_isos', self::ISO_CACHE_DURATION, function () use ($endpoint) {
-            return $this->apiCall($endpoint);
-        });
+        $result = $this->apiCall($endpoint);
 
         if (empty($result->public_isos)) {
             $this->throwError("No public ISOs were returned by the provider", ['result_data' => $result]);

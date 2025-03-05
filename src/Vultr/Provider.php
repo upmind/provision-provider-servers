@@ -49,7 +49,6 @@ class Provider extends Category implements ProviderInterface
      */
     public function create(CreateParams $params): ServerInfoResult
     {
-        //TESTED
         try {
             $instance_id = $this->api()->createInstance($params);
 
@@ -66,7 +65,6 @@ class Provider extends Category implements ProviderInterface
      */
     public function getInfo(ServerIdentifierParams $params): ServerInfoResult
     {
-        //TESTED
         return $this->getServerInfoResult($params->instance_id);
     }
 
@@ -77,7 +75,6 @@ class Provider extends Category implements ProviderInterface
      */
     public function getConnection(ServerIdentifierParams $params): ConnectionResult
     {
-        //TESTED
         $server = $this->api()->getInstance($params->instance_id);
 
         return ConnectionResult::create()
@@ -105,7 +102,7 @@ class Provider extends Category implements ProviderInterface
      */
     public function resize(ResizeParams $params): ServerInfoResult
     {
-        //TESTED - resize up, but not down
+        //resize up, but not down
         try {
             $available_plans = $this->api()->getAvailableInstanceUpgradePlans($params->instance_id);
 
@@ -135,7 +132,6 @@ class Provider extends Category implements ProviderInterface
      */
     public function reinstall(ReinstallParams $params): ServerInfoResult
     {
-        //TESTED
         try {
             $logger = $this->getLogger();
             $logger->info('Reinstalling server', [
@@ -160,7 +156,6 @@ class Provider extends Category implements ProviderInterface
      */
     public function reboot(ServerIdentifierParams $params): ServerInfoResult
     {
-        //TESTED
         try {
             $this->api()->rebootInstance($params->instance_id);
 
@@ -179,7 +174,6 @@ class Provider extends Category implements ProviderInterface
      */
     public function shutdown(ServerIdentifierParams $params): ServerInfoResult
     {
-        //TESTED
         try {
             $info = $this->getServerInfoResult($params->instance_id);
 
@@ -204,7 +198,6 @@ class Provider extends Category implements ProviderInterface
      */
     public function powerOn(ServerIdentifierParams $params): ServerInfoResult
     {
-        //TESTED
         try {
             $info = $this->getServerInfoResult($params->instance_id);
 
@@ -229,7 +222,6 @@ class Provider extends Category implements ProviderInterface
      */
     public function terminate(ServerIdentifierParams $params): EmptyResult
     {
-        //TESTED
         try {
             $this->api()->deleteInstance($params->instance_id);
 
@@ -245,7 +237,6 @@ class Provider extends Category implements ProviderInterface
      */
     public function suspend(ServerIdentifierParams $params): ServerInfoResult
     {
-        //TESTED
         return $this->shutdown($params);
     }
 
@@ -254,7 +245,6 @@ class Provider extends Category implements ProviderInterface
      */
     public function unsuspend(ServerIdentifierParams $params): ServerInfoResult
     {
-        //TESTED
         return $this->powerOn($params);
     }
 
@@ -263,9 +253,6 @@ class Provider extends Category implements ProviderInterface
      */
     public function attachRecoveryIso(ServerIdentifierParams $params): ServerInfoResult
     {
-        //TESTED
-
-        // TODO check if recovery ISO is already attached - checked in the api()->attachRecoveryIso() method
         try {
             $this->api()->attachRecoveryIso($params->instance_id);
 
@@ -282,9 +269,6 @@ class Provider extends Category implements ProviderInterface
      */
     public function detachRecoveryIso(ServerIdentifierParams $params): ServerInfoResult
     {
-        //TESTED
-
-        // TODO check if no ISO is currently attached - current instance ISO is queried and compared vs. recovery ISO
         try {
             //get the current attached ISO & recovery ISO
             $recovery_iso = $this->api()->getRecoveryIso();
@@ -317,7 +301,6 @@ class Provider extends Category implements ProviderInterface
      */
     protected function getServerInfoResult(string $serverId): ServerInfoResult
     {
-        //TESTED
         try {
             $server = $this->api()->getInstance($serverId);
             $region = $this->api()->getRegion($server->region);
