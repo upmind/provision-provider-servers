@@ -20,5 +20,6 @@ class LaravelServiceProvider extends ProvisionServiceProvider
         $this->bindProvider('servers', 'virtuozzo', Virtuozzo\Provider::class);
         $this->bindProvider('servers', 'onapp', OnApp\Provider::class);
         $this->bindProvider('servers', 'virtfusion', Virtfusion\Provider::class);
+        $this->bindProvider('servers', '20i', TwentyI\Provider::class);
     }
 }
