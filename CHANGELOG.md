@@ -2,6 +2,11 @@
 
 All notable changes to the package will be documented in this file.
 
+## [v4.3.0](https://github.com/upmind-automation/provision-provider-servers/releases/tag/v4.3.0) - 2025-04-29
+
+- Update getConnection params and result data to support application login + form post results
+- Implement cpanel/whm form post login in Virtualizor
+
 ## [v4.2.3](https://github.com/upmind-automation/provision-provider-servers/releases/tag/v4.2.3) - 2025-02-19
 
 - Implement Virtualizor SSO
@@ -29,6 +34,11 @@ All notable changes to the package will be documented in this file.
 
 - Update for PHP 8 and base lib v4
 - Update Linode SDK to v3.5.0
+
+## [v4.0.7](https://github.com/upmind-automation/provision-provider-servers/releases/tag/v4.0.7) - 2025-04-29
+
+- Update getConnection params and result data to support application login + form post results
+- Implement cpanel/whm form post login in Virtualizor
 
 ## [v4.0.6](https://github.com/upmind-automation/provision-provider-servers/releases/tag/v4.0.6) - 2025-02-19
 
