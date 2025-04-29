@@ -2,6 +2,11 @@
 
 All notable changes to the package will be documented in this file.
 
+## [v4.0.7](https://github.com/upmind-automation/provision-provider-servers/releases/tag/v4.0.7) - 2025-04-29
+
+- Update getConnection params and result data to support application login + form post results
+- Implement cpanel/whm form post login in Virtualizor
+
 ## [v4.0.6](https://github.com/upmind-automation/provision-provider-servers/releases/tag/v4.0.6) - 2025-02-19
 
 - Implement Virtualizor SSO
