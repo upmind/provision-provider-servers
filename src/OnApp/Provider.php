@@ -17,6 +17,7 @@ use Upmind\ProvisionProviders\Servers\Data\ResizeParams;
 use Upmind\ProvisionProviders\Servers\Data\ServerIdentifierParams;
 use Upmind\ProvisionProviders\Servers\Data\ServerInfoResult;
 use Upmind\ProvisionProviders\Servers\Data\ConnectionResult;
+use Upmind\ProvisionProviders\Servers\Data\GetConnectionParams;
 use Upmind\ProvisionProviders\Servers\OnApp\Data\Configuration;
 
 class Provider extends Category implements ProviderInterface
@@ -93,7 +94,7 @@ class Provider extends Category implements ProviderInterface
      * @throws \Upmind\ProvisionBase\Exception\ProvisionFunctionError
      * @throws \Throwable
      */
-    public function getConnection(ServerIdentifierParams $params): ConnectionResult
+    public function getConnection(GetConnectionParams $params): ConnectionResult
     {
         try {
             $info = $this->getServerInfoResult($params->instance_id);

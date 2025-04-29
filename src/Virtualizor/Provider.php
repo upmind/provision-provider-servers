@@ -16,6 +16,8 @@ use Upmind\ProvisionProviders\Servers\Data\ResizeParams;
 use Upmind\ProvisionProviders\Servers\Data\ServerIdentifierParams;
 use Upmind\ProvisionProviders\Servers\Data\ServerInfoResult;
 use Upmind\ProvisionProviders\Servers\Data\ConnectionResult;
+use Upmind\ProvisionProviders\Servers\Data\FormPost;
+use Upmind\ProvisionProviders\Servers\Data\GetConnectionParams;
 use Upmind\ProvisionProviders\Servers\Virtualizor\Data\Configuration;
 
 /**
@@ -146,8 +148,33 @@ class Provider extends Category implements ProviderInterface
      * @throws \Upmind\ProvisionBase\Exception\ProvisionFunctionError
      * @throws \Throwable
      */
-    public function getConnection(ServerIdentifierParams $params): ConnectionResult
+    public function getConnection(GetConnectionParams $params): ConnectionResult
     {
+        if ($params->application) {
+            if (in_array($params->application, ['whm', 'cpanel'])) {
+                $info = $this->getServerInfoResult($params->instance_id);
+
+                $url = $params->application === 'whm'
+                    ? sprintf('https://%s:2087/login/', $info->hostname)
+                    : sprintf('https://%s:2083/login/', $info->hostname);
+                $postFields = [
+                    'user' => $params->application_params['username'] ?? '',
+                    'pass' => $params->application_params['password'] ?? '',
+                ];
+
+                return ConnectionResult::create()
+                    ->setMessage('Control panel URL generated')
+                    ->setType(ConnectionResult::TYPE_FORM_POST)
+                    ->setFormPost(
+                        FormPost::create()
+                            ->setUrl($url)
+                            ->setParams($postFields)
+                    );
+            }
+
+            $this->errorResult('Unsupported application');
+        }
+
         $url = $this->api()->getSsoUrl($params->instance_id);
 
         return ConnectionResult::create()
