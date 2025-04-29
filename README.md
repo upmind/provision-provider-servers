@@ -49,7 +49,7 @@ The following providers are currently implemented:
 |---|---|---|---|
 | create() | [_CreateParams_](src/Data/CreateParams.php) | [_ServerInfoResult_](src/Data/ServerInfoResult.php) | Create and boot a new server |
 | getInfo() | [_ServerIdentifierParams_](src/Data/ServerIdentifierParams.php) | [_ServerInfoResult_](src/Data/ServerInfoResult.php) | Get information about a server such as its label, current state (running/rebooting etc), image (e.g., ubuntu), size and region |
-| getConnection() | [_ServerIdentifierParams_](src/Data/ServerIdentifierParams.php) | [_ConnectionResult_](src/Data/ConnectionResult.php) | Get a command to connect to a server |
+| getConnection() | [_GetConnectionParams_](src/Data/GetConnectionParams.php) | [_ConnectionResult_](src/Data/ConnectionResult.php) | Get a command to connect to a server |
 | changeRootPassword() | [_ChangeRootPasswordParams_](src/Data/ChangeRootPasswordParams.php) | [_ServerInfoResult_](src/Data/ServerInfoResult.php) | Update the root password used to SSH into a server |
 | resize() | [_ResizeParams_](src/Data/ResizeParams.php) | [_ServerInfoResult_](src/Data/ServerInfoResult.php) | Redeploy an existing server with a different resource allocation |
 | reinstall() | [_ReinstallParams_](src/Data/ReinstallParams.php) | [_ServerInfoResult_](src/Data/ServerInfoResult.php) | Reinstall (wipe/reset) an existing server server using a particular image |

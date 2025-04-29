@@ -12,6 +12,7 @@ use Upmind\ProvisionBase\Provider\DataSet\Rules;
  * @property-read string $type Connection type
  * @property-read string|null $command SSH command
  * @property-read string|null $redirect_url Redirect URL
+ * @property-read FormPost|null $form_post Form post data
  * @property-read VncConnection|null $vnc_connection VNC connection
  * @property-read string|null $password
  * @property-read string|null $expires_at
@@ -31,6 +32,7 @@ class ConnectionResult extends ResultData
                 'required_if:type,' . self::TYPE_REDIRECT,
                 'url',
             ],
+            'form_post' => ['required_if:type,' . self::TYPE_FORM_POST, 'nullable', FormPost::class],
             'vnc_connection' => ['required_if:type,' . self::TYPE_VNC, 'nullable', VncConnection::class],
             'password' => ['nullable', 'string'],
             'expires_at' => ['nullable', 'date'],
@@ -41,6 +43,7 @@ class ConnectionResult extends ResultData
         self::TYPE_SSH,
         self::TYPE_VNC,
         self::TYPE_REDIRECT,
+        self::TYPE_FORM_POST,
     ];
 
     /**
@@ -63,6 +66,13 @@ class ConnectionResult extends ResultData
      * @var string
      */
     public const TYPE_REDIRECT = 'redirect';
+
+    /**
+     * Connection is in-browser via a form post.
+     *
+     * @var string
+     */
+    public const TYPE_FORM_POST = 'form_post';
 
     /**
      * @return self $this
@@ -97,6 +107,15 @@ class ConnectionResult extends ResultData
     public function setVncConnection(?VncConnection $vnc): self
     {
         $this->setValue('vnc_connection', $vnc);
+        return $this;
+    }
+
+    /**
+     * @return self $this
+     */
+    public function setFormPost(?FormPost $formPost): self
+    {
+        $this->setValue('form_post', $formPost);
         return $this;
     }
 

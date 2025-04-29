@@ -16,6 +16,7 @@ use Upmind\ProvisionProviders\Servers\Data\ResizeParams;
 use Upmind\ProvisionProviders\Servers\Data\ServerIdentifierParams;
 use Upmind\ProvisionProviders\Servers\Data\ServerInfoResult;
 use Upmind\ProvisionProviders\Servers\Data\ConnectionResult;
+use Upmind\ProvisionProviders\Servers\Data\GetConnectionParams;
 use Upmind\ProvisionProviders\Servers\Example\Data\Configuration;
 
 /**
@@ -71,7 +72,7 @@ class Provider extends Category implements ProviderInterface
     /**
      * @inheritDoc
      */
-    public function getConnection(ServerIdentifierParams $params): ConnectionResult
+    public function getConnection(GetConnectionParams $params): ConnectionResult
     {
         throw $this->errorResult('Not implemented');
     }
