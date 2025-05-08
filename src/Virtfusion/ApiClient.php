@@ -35,7 +35,8 @@ class ApiClient
                 'Authorization' => 'Bearer ' . $this->configuration->api_token,
             ],
             'connect_timeout' => 10,
-            'timeout' => $configuration->timeout ?? 120,
+            // If timeout is empty, ie 0 or null, we set it to 120 seconds
+            'timeout' => empty($configuration->timeout) ? 120 : $configuration->timeout,
             'handler' => $handler,
         ]);
     }
