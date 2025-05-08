@@ -2,6 +2,10 @@
 
 All notable changes to the package will be documented in this file.
 
+## [v4.3.1](https://github.com/upmind-automation/provision-provider-servers/releases/tag/v4.3.1) - 2025-05-08
+
+- Fix Virtfusion and OnApp configuration timeout to default to 120 if empty
+
 ## [v4.3.0](https://github.com/upmind-automation/provision-provider-servers/releases/tag/v4.3.0) - 2025-04-29
 
 - Update getConnection params and result data to support application login + form post results
@@ -34,6 +38,10 @@ All notable changes to the package will be documented in this file.
 
 - Update for PHP 8 and base lib v4
 - Update Linode SDK to v3.5.0
+
+## [v4.0.8](https://github.com/upmind-automation/provision-provider-servers/releases/tag/v4.0.8) - 2025-05-08
+
+- Fix Virtfusion and OnApp configuration timeout to default to 120 if empty
 
 ## [v4.0.7](https://github.com/upmind-automation/provision-provider-servers/releases/tag/v4.0.7) - 2025-04-29
 
