@@ -346,7 +346,7 @@ class RobotApiClient
                 $errorMessage = implode(', ', $messages);
             }
 
-            $errorMessage = sprintf('Provider API error: %s', $errorMessage ?? $reason ?? 'Unknown');
+            $errorMessage = sprintf('Provider API error: %s', $errorMessage ?? $reason);
             throw ProvisionFunctionError::create($errorMessage)
                 ->withData($errorData);
 
