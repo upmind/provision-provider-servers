@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Upmind\ProvisionProviders\Servers\HetznerRobot;
 
-use Illuminate\Support\Arr;
 use Throwable;
 use Upmind\ProvisionBase\Provider\Contract\ProviderInterface;
 use Upmind\ProvisionBase\Provider\DataSet\AboutData;
@@ -24,7 +23,7 @@ use Upmind\ProvisionProviders\Servers\HetznerRobot\Data\Configuration;
 class Provider extends Category implements ProviderInterface
 {
     protected Configuration $configuration;
-    protected RobotApiClient|null $robotApiClient = null;
+    protected ?RobotApiClient $robotApiClient = null;
 
     public function __construct(Configuration $configuration)
     {
@@ -223,7 +222,7 @@ class Provider extends Category implements ProviderInterface
                 return $info->setMessage('Virtual server already off');
             }
 
-            $this->robotApi()->shutdown($params->instance_id);
+            $this->robotApi()->toggle($params->instance_id);
 
             return $info->setMessage('Server is shutting down')->setState('Stopping');
         } catch (Throwable $e) {
@@ -247,7 +246,7 @@ class Provider extends Category implements ProviderInterface
                 return $info->setMessage('Virtual server already on');
             }
 
-            $this->robotApi()->start($params->instance_id);
+            $this->robotApi()->toggle($params->instance_id);
 
             return $info->setMessage('Server is booting')->setState('Starting');
         } catch (Throwable $e) {
@@ -339,5 +338,4 @@ class Provider extends Category implements ProviderInterface
     {
         throw $e;
     }
-
 }
