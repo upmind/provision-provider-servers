@@ -205,7 +205,7 @@ class RobotApiClient
      * @throws \Upmind\ProvisionBase\Exception\ProvisionFunctionError
      * @throws \Throwable
      */
-    public function toggle(string $serverId): void
+    public function togglePower(string $serverId): void
     {
         $this->makeRequest("/reset/{$serverId}", ['type' => 'power'], null, 'POST');
     }
@@ -218,7 +218,6 @@ class RobotApiClient
 
     public function rebuildServer(string $serverId, string $image): void
     {
-
         $linux = $this->makeRequest("/boot/{$serverId}/linux")['linux'];
 
         if (!in_array($image, $linux['dist'])) {

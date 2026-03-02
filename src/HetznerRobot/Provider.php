@@ -222,7 +222,7 @@ class Provider extends Category implements ProviderInterface
                 return $info->setMessage('Virtual server already off');
             }
 
-            $this->robotApi()->toggle($params->instance_id);
+            $this->robotApi()->togglePower($params->instance_id);
 
             return $info->setMessage('Server is shutting down')->setState('Stopping');
         } catch (Throwable $e) {
@@ -246,7 +246,7 @@ class Provider extends Category implements ProviderInterface
                 return $info->setMessage('Virtual server already on');
             }
 
-            $this->robotApi()->toggle($params->instance_id);
+            $this->robotApi()->togglePower($params->instance_id);
 
             return $info->setMessage('Server is booting')->setState('Starting');
         } catch (Throwable $e) {
