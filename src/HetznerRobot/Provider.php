@@ -327,7 +327,6 @@ class Provider extends Category implements ProviderInterface
                 new Client([
                     'base_uri' => 'https://robot-ws.your-server.de',
                     'headers' => [
-                        'Content-Type' => 'application/json',
                         'User-Agent' => 'Upmind/ProvisionProviders/Servers/HetznerRobotApi',
                     ],
                     'auth' => [$this->configuration->api_login, $this->configuration->api_password],
