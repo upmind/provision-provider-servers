@@ -4,17 +4,10 @@ declare(strict_types=1);
 
 namespace Upmind\ProvisionProviders\Servers\HetznerRobot;
 
-use Carbon\Carbon;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ConnectException;
-use GuzzleHttp\Exception\TransferException;
 use GuzzleHttp\HandlerStack;
-use GuzzleHttp\Psr7\Response;
-use GuzzleHttp\RequestOptions;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
 use Throwable;
 use Upmind\ProvisionBase\Exception\ProvisionFunctionError;
 use Upmind\ProvisionBase\Helper;
@@ -47,8 +40,7 @@ class RobotApiClient
      * @throws \Upmind\ProvisionBase\Exception\ProvisionFunctionError
      * @throws \Throwable
      */
-    public function create(
-        CreateParams $params): string
+    public function create(CreateParams $params): string
     {
         $product = $this->findProduct($params->size);
 
@@ -157,15 +149,16 @@ class RobotApiClient
             if (is_string($boot['dist'])) {
                 $image = $boot['dist'];
             }
-        } catch (Throwable) {
+        } catch (Throwable $t) {
+            // Ignore errors for fetching image info
         }
 
         $reset = $this->getReset($serverId);
 
         return [
             'instance_id' => (string)$response['server_number'],
-            'state' => $reset['operating_status'] == 'running' ? 'on' : 'off',
-            'label' => $response['server_name'] ?: 'Null',
+            'state' => $reset['operating_status'] === 'running' ? 'on' : 'off',
+            'label' => $response['server_name'] ?: 'N/A',
             'image' => $image,
             'ip_address' => $response['server_ip'],
             'size' => $response['product'],
@@ -205,23 +198,14 @@ class RobotApiClient
     }
 
     /**
+     * Method to change the power state of the server.
+     * It will turn it `off` if currently `on` and `on` if currently `off`
+     *
      * @throws \GuzzleHttp\Exception\GuzzleException
      * @throws \Upmind\ProvisionBase\Exception\ProvisionFunctionError
      * @throws \Throwable
      */
-
-    public function shutdown(string $serverId): void
-    {
-        $this->makeRequest("/reset/{$serverId}", ['type' => 'power'], null, 'POST');
-    }
-
-    /**
-     * @throws \GuzzleHttp\Exception\GuzzleException
-     * @throws \Upmind\ProvisionBase\Exception\ProvisionFunctionError
-     * @throws \Throwable
-     */
-
-    public function start(string $serverId): void
+    public function toggle(string $serverId): void
     {
         $this->makeRequest("/reset/{$serverId}", ['type' => 'power'], null, 'POST');
     }

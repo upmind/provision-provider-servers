@@ -12,7 +12,7 @@ use Upmind\ProvisionBase\Provider\DataSet\Rules;
  *
  * @property-read string $api_login Login field found in API Login Credentials
  * @property-read string $api_password Password field found in API Login Credentials
- * @property-read string $test Use Hetzner Robot API test environment
+ * @property-read bool|null $test Use Hetzner Robot API test environment
  */
 class Configuration extends DataSet
 {
