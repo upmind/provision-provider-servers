@@ -39,7 +39,7 @@ class Provider extends Category implements ProviderInterface
     {
         return AboutData::create()
             ->setName('Hetzner Robot')
-            ->setLogoUrl('https://api.upmind.io/images/logos/provision/hetzner-robot-logo.png')
+            ->setLogoUrl('https://api.upmind.io/images/logos/provision/hetzner-logo.svg')
             ->setDescription('Deploy and manage Hetzner Robot servers');
     }
 
