@@ -55,7 +55,7 @@ class Provider extends Category implements ProviderInterface
             $transactionId = $this->robotApi()->create($params);
 
             // Poll for completion
-            $maxWaitSeconds = 60;
+            $maxWaitSeconds = 600;
             $interval = 30;
             $waited = 0;
 
