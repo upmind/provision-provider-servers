@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Upmind\ProvisionProviders\Servers\HetznerRobot;
 
+use GuzzleHttp\Client;
 use Throwable;
 use Upmind\ProvisionBase\Provider\Contract\ProviderInterface;
 use Upmind\ProvisionBase\Provider\DataSet\AboutData;
@@ -54,7 +55,7 @@ class Provider extends Category implements ProviderInterface
             $transactionId = $this->robotApi()->create($params);
 
             // Poll for completion
-            $maxWaitSeconds = 600;
+            $maxWaitSeconds = 60;
             $interval = 30;
             $waited = 0;
 
@@ -321,10 +322,24 @@ class Provider extends Category implements ProviderInterface
 
     protected function robotApi(): RobotApiClient
     {
-        return $this->robotApiClient ??= new RobotApiClient(
-            $this->configuration,
-            $this->getGuzzleHandlerStack()
-        );
+        if ($this->robotApiClient === null) {
+            $this->robotApiClient = new RobotApiClient(
+                new Client([
+                    'base_uri' => 'https://robot-ws.your-server.de',
+                    'headers' => [
+                        'Content-Type' => 'application/json',
+                        'User-Agent' => 'Upmind/ProvisionProviders/Servers/HetznerRobotApi',
+                    ],
+                    'auth' => [$this->configuration->api_login, $this->configuration->api_password],
+                    'connect_timeout' => 10,
+                    'timeout' => 30,
+                    'handler' => $this->getGuzzleHandlerStack(),
+                ]),
+                $this->configuration,
+            );
+        }
+
+        return $this->robotApiClient;
     }
 
 

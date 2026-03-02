@@ -7,7 +7,6 @@ namespace Upmind\ProvisionProviders\Servers\HetznerRobot;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ConnectException;
-use GuzzleHttp\HandlerStack;
 use Throwable;
 use Upmind\ProvisionBase\Exception\ProvisionFunctionError;
 use Upmind\ProvisionBase\Helper;
@@ -19,20 +18,10 @@ class RobotApiClient
     protected Configuration $configuration;
     protected Client $client;
 
-    public function __construct(Configuration $configuration, ?HandlerStack $handler = null)
+    public function __construct(Client $client, Configuration $configuration)
     {
+        $this->client = $client;
         $this->configuration = $configuration;
-        $this->client = new Client([
-            'base_uri' => 'https://robot-ws.your-server.de',
-            'headers' => [
-                'Content-Type' => 'application/json',
-                'User-Agent' => 'Upmind/ProvisionProviders/DomainNames/HetznerRobotApi',
-            ],
-            'auth' => [$this->configuration->api_login, $this->configuration->api_password],
-            'connect_timeout' => 10,
-            'timeout' => 30,
-            'handler' => $handler,
-        ]);
     }
 
     /**
@@ -242,8 +231,7 @@ class RobotApiClient
         ?array  $params = null,
         ?array  $body = null,
         ?string $method = 'GET'
-    ): ?array
-    {
+    ): ?array {
         try {
             $requestParams = [];
 
@@ -256,7 +244,7 @@ class RobotApiClient
             }
 
             $response = $this->client->request($method, $command, $requestParams);
-            $result = $response->getBody()->getContents();
+            $result = $response->getBody()->__toString();
 
             $response->getBody()->close();
 
