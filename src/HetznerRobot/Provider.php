@@ -6,6 +6,7 @@ namespace Upmind\ProvisionProviders\Servers\HetznerRobot;
 
 use GuzzleHttp\Client;
 use Throwable;
+use Upmind\ProvisionBase\Exception\ProvisionFunctionError;
 use Upmind\ProvisionBase\Provider\Contract\ProviderInterface;
 use Upmind\ProvisionBase\Provider\DataSet\AboutData;
 use Upmind\ProvisionProviders\Servers\Category;
@@ -350,6 +351,10 @@ class Provider extends Category implements ProviderInterface
      */
     protected function handleException(Throwable $e): void
     {
+        if (!$e instanceof ProvisionFunctionError) {
+            $e = new ProvisionFunctionError('Unexpected Provider Error', $e->getCode(), $e);
+        }
+
         throw $e;
     }
 }
