@@ -364,7 +364,10 @@ class Provider extends Category implements ProviderInterface
             ->setLocation($location)
             ->setNode($server['server_name'])
             ->setVirtualizationType($vps['virt'])
-            ->setIpAddress(Arr::first($vps['ips']));
+            ->setIpAddress(Arr::first($vps['ips']))
+            ->setCpuCores(isset($vps['cores']) ? (int)$vps['cores'] : null)
+            ->setMemoryMb(isset($vps['ram']) ? (int)$vps['ram'] : null)
+            ->setDiskMb(isset($vps['space']) ? (int)$vps['space'] * 1024 : null);
     }
 
     /**
