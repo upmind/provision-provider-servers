@@ -42,6 +42,7 @@ The following providers are currently implemented:
   - [Virtuozzo Hybrid Server 7](https://docs.virtuozzo.com/legacy/va61/Virtuozzo_Automator_Agent_XML_API_Reference.pdf)
   - [OnApp](https://docs.onapp.com/apim/6.0)
   - [Virtfusion](https://docs.virtfusion.com/api/)
+  - [Hetzner Robot](https://robot.hetzner.com/doc/webservice/en.html#preface)
 
 ## Functions
 
