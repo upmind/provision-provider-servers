@@ -73,7 +73,7 @@ class Provider extends Category implements ProviderInterface
                 $waited += $interval;
             }
 
-            if ($serverId == null) {
+            if ($serverId === null) {
 
                 $info = [
                     'instance_id' => $transactionId,
