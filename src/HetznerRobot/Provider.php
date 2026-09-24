@@ -74,14 +74,19 @@ class Provider extends Category implements ProviderInterface
             }
 
             if ($serverId === null) {
-
+                // The order has not finished provisioning yet. Keep the transaction id
+                // as the identifier (getServerInfo() resolves it to the real server
+                // number once available) and also expose it in metadata.
                 $info = [
                     'instance_id' => $transactionId,
                     'state' => 'In progress',
-                    'label' => $params->image,
+                    'label' => $params->label,
                     'image' => $params->image,
                     'size' => $params->size,
-                    'location' => $params->location
+                    'location' => $params->location,
+                    'metadata' => [
+                        'transaction_id' => $transactionId,
+                    ],
                 ];
                 return ServerInfoResult::create($info)->setMessage('Transaction in progress!');
             }

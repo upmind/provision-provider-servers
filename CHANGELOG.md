@@ -2,6 +2,10 @@
 
 All notable changes to the package will be documented in this file.
 
+## Unreleased
+
+- Add Hetzner Robot provider
+
 ## [v4.3.2](https://github.com/upmind-automation/provision-provider-servers/releases/tag/v4.3.2) - 2026-04-22
 
 - Add `cpu_cores`, `disk_mb` and `memory_mb` to ServerInfoResult for Virtualizor provider
