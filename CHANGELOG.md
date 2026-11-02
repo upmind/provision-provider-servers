@@ -2,7 +2,7 @@
 
 All notable changes to the package will be documented in this file.
 
-## UNRELEASED
+## [v4.4.0](https://github.com/upmind-automation/provision-provider-servers/releases/tag/v4.4.0) - 2026-11-02
 
 - Add `token` connection type to ConnectionResult
 
