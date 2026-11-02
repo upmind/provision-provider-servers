@@ -14,6 +14,7 @@ use Upmind\ProvisionBase\Provider\DataSet\Rules;
  * @property-read string|null $redirect_url Redirect URL
  * @property-read FormPost|null $form_post Form post data
  * @property-read VncConnection|null $vnc_connection VNC connection
+ * @property-read string|null $token
  * @property-read string|null $password
  * @property-read string|null $expires_at
  */
@@ -34,6 +35,7 @@ class ConnectionResult extends ResultData
             ],
             'form_post' => ['required_if:type,' . self::TYPE_FORM_POST, 'nullable', FormPost::class],
             'vnc_connection' => ['required_if:type,' . self::TYPE_VNC, 'nullable', VncConnection::class],
+            'token' => ['required_if:type,' . self::TYPE_TOKEN, 'nullable', 'string'],
             'password' => ['nullable', 'string'],
             'expires_at' => ['nullable', 'date'],
         ]);
@@ -44,6 +46,7 @@ class ConnectionResult extends ResultData
         self::TYPE_VNC,
         self::TYPE_REDIRECT,
         self::TYPE_FORM_POST,
+        self::TYPE_TOKEN,
     ];
 
     /**
@@ -73,6 +76,13 @@ class ConnectionResult extends ResultData
      * @var string
      */
     public const TYPE_FORM_POST = 'form_post';
+
+    /**
+     * Connection is an API/session token.
+     *
+     * @var string
+     */
+    public const TYPE_TOKEN = 'token';
 
     /**
      * @return self $this
@@ -116,6 +126,15 @@ class ConnectionResult extends ResultData
     public function setFormPost(?FormPost $formPost): self
     {
         $this->setValue('form_post', $formPost);
+        return $this;
+    }
+
+    /**
+     * @return self $this
+     */
+    public function setToken(?string $token): self
+    {
+        $this->setValue('token', $token);
         return $this;
     }
 
