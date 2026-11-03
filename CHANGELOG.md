@@ -2,6 +2,14 @@
 
 All notable changes to the package will be documented in this file.
 
+## Unreleased
+
+- Require PHP 8.3; support PHP 8.3, 8.4 and 8.5
+- Require `upmind/provision-provider-base` ^5.0
+- Require a `upmind/linode-api` version that supports Guzzle 8
+- Update dev dependencies to `phpstan/phpstan` ^2.0
+- Update OnApp, Virtfusion and Virtualizor connection error handling to catch Guzzle 8 `NetworkException`, which includes no-response timeouts
+
 ## [v4.4.0](https://github.com/upmind-automation/provision-provider-servers/releases/tag/v4.4.0) - 2026-11-02
 
 - Add `token` connection type to ConnectionResult

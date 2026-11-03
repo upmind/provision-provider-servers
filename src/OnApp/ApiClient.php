@@ -7,7 +7,7 @@ namespace Upmind\ProvisionProviders\Servers\OnApp;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\BadResponseException;
-use GuzzleHttp\Exception\ConnectException;
+use GuzzleHttp\Exception\NetworkException;
 use GuzzleHttp\Exception\TransferException;
 use GuzzleHttp\HandlerStack;
 use Illuminate\Support\Str;
@@ -112,14 +112,14 @@ class ApiClient
             'exception' => get_class($e),
         ];
 
-        if ($e instanceof ConnectException) {
+        if ($e instanceof NetworkException) {
             $errorData['connection_error'] = $e->getMessage();
             throw ProvisionFunctionError::create('Provider API Connection error', $e)
                 ->withData($errorData);
         }
 
         if ($e instanceof TransferException) {
-            if ($e instanceof BadResponseException && $e->hasResponse()) {
+            if ($e instanceof BadResponseException) {
                 $response = $e->getResponse();
                 $reason = $response->getReasonPhrase();
                 $responseBody = trim($response->getBody()->__toString());
