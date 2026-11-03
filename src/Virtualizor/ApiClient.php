@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Upmind\ProvisionProviders\Servers\Virtualizor;
 
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\ConnectException;
+use GuzzleHttp\Exception\NetworkException;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\RequestOptions;
@@ -569,7 +569,7 @@ class ApiClient
                 RequestOptions::QUERY => $query,
                 RequestOptions::FORM_PARAMS => $post,
             ]);
-        } catch (ConnectException $e) {
+        } catch (NetworkException $e) {
             $errorMessage = 'Provider API connection failed';
             if (Str::contains($e->getMessage(), ['timeout', 'timed out'])) {
                 $errorMessage = 'Provider API request timeout';
